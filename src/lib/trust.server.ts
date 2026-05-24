@@ -30,7 +30,7 @@ async function ensureNode(sessionId: string, type: string, value: string, flagge
   if (existing) return existing;
   const { data: created, error } = await supabaseAdmin
     .from("nodes").insert({ session_id: sessionId, type, value, flagged }).select("*").single();
-  if (error) throw error;
+  if (error) { console.error("[trust] node insert failed", error); throw new Error("Database operation failed"); }
   return created;
 }
 
@@ -145,7 +145,7 @@ export async function evaluateTrust(sessionId: string, input: EvaluateInput) {
       typing_speed: input.typing_speed,
       score, risk, factors, recommendation, prev_hash, hash,
     }).select("*").single();
-  if (error) throw error;
+  if (error) { console.error("[trust] evaluation insert failed", error); throw new Error("Database operation failed"); }
 
   return { evaluation: row, factors, score, risk, recommendation, hash, prev_hash };
 }
@@ -155,7 +155,7 @@ export async function fetchRecentEvaluations(sessionId: string, limit = 20) {
     .from("evaluations").select("*")
     .eq("session_id", sessionId)
     .order("created_at", { ascending: false }).limit(limit);
-  if (error) throw error;
+  if (error) { console.error("[trust] fetch evaluations failed", error); throw new Error("Database operation failed"); }
   return data ?? [];
 }
 
