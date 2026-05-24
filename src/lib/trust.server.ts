@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type EvaluateInput = {
@@ -19,35 +19,43 @@ export function sha256(input: string): string {
   return createHash("sha256").update(input).digest("hex");
 }
 
-export async function ensureNode(type: string, value: string, flagged = false) {
+export function newSessionId(): string {
+  return randomUUID();
+}
+
+async function ensureNode(sessionId: string, type: string, value: string, flagged = false) {
   const { data: existing } = await supabaseAdmin
-    .from("nodes").select("*").eq("type", type).eq("value", value).maybeSingle();
+    .from("nodes").select("*")
+    .eq("session_id", sessionId).eq("type", type).eq("value", value).maybeSingle();
   if (existing) return existing;
   const { data: created, error } = await supabaseAdmin
-    .from("nodes").insert({ type, value, flagged }).select("*").single();
+    .from("nodes").insert({ session_id: sessionId, type, value, flagged }).select("*").single();
   if (error) throw error;
   return created;
 }
 
-export async function ensureEdge(sourceId: string, targetId: string, kind: string) {
+async function ensureEdge(sessionId: string, sourceId: string, targetId: string, kind: string) {
   await supabaseAdmin
     .from("edges")
-    .upsert({ source_id: sourceId, target_id: targetId, kind }, { onConflict: "source_id,target_id,kind" });
+    .upsert(
+      { session_id: sessionId, source_id: sourceId, target_id: targetId, kind },
+      { onConflict: "session_id,source_id,target_id,kind" },
+    );
 }
 
-export async function evaluateTrust(input: EvaluateInput) {
+export async function evaluateTrust(sessionId: string, input: EvaluateInput) {
   const factors: Factor[] = [];
   let risk = 0;
 
-  // 1. Look up / create graph nodes
-  const userNode = await ensureNode("user", input.username);
-  const ipNode = await ensureNode("ip", input.ip);
-  const deviceNode = await ensureNode("device", input.device_fingerprint);
-  const locNode = await ensureNode("location", input.location);
+  const userNode = await ensureNode(sessionId, "user", input.username);
+  const ipNode = await ensureNode(sessionId, "ip", input.ip);
+  const deviceNode = await ensureNode(sessionId, "device", input.device_fingerprint);
+  const locNode = await ensureNode(sessionId, "location", input.location);
 
-  // 2. New device check (no prior user→device edge)
+  // New device check (no prior user→device edge in this session)
   const { data: priorDeviceEdge } = await supabaseAdmin
     .from("edges").select("id")
+    .eq("session_id", sessionId)
     .eq("source_id", userNode.id).eq("target_id", deviceNode.id).eq("kind", "uses_device")
     .maybeSingle();
   if (!priorDeviceEdge) {
@@ -55,46 +63,42 @@ export async function evaluateTrust(input: EvaluateInput) {
     factors.push({ label: "New device detected", weight: 25, kind: "device" });
   }
 
-  // 3. VPN / proxy detection
   const isVpn = VPN_PREFIXES.some((p) => input.ip.startsWith(p));
   if (isVpn) {
     risk += 20;
     factors.push({ label: "VPN / proxy detected", weight: 20, kind: "network" });
   }
 
-  // 4. Flagged IP (graph node flagged OR shared by another flagged user)
   if (ipNode.flagged) {
     risk += 40;
     factors.push({ label: "Fraud-linked IP", weight: 40, kind: "ip" });
   } else {
-    // Shared-IP detection: more than 2 distinct users on this IP
     const { count } = await supabaseAdmin
       .from("edges").select("*", { count: "exact", head: true })
-      .eq("target_id", ipNode.id).eq("kind", "uses_ip");
+      .eq("session_id", sessionId).eq("target_id", ipNode.id).eq("kind", "uses_ip");
     if ((count ?? 0) >= 2) {
       risk += 15;
       factors.push({ label: `Shared IP across ${count} accounts`, weight: 15, kind: "ip" });
     }
   }
 
-  // 5. Shared device detection
   if (deviceNode.flagged) {
     risk += 30;
     factors.push({ label: "Flagged device fingerprint", weight: 30, kind: "device" });
   } else {
     const { count } = await supabaseAdmin
       .from("edges").select("*", { count: "exact", head: true })
-      .eq("target_id", deviceNode.id).eq("kind", "uses_device");
+      .eq("session_id", sessionId).eq("target_id", deviceNode.id).eq("kind", "uses_device");
     if ((count ?? 0) >= 2) {
       risk += 15;
       factors.push({ label: `Shared device across ${count} accounts`, weight: 15, kind: "device" });
     }
   }
 
-  // 6. Typing rhythm mismatch — compare with this user's historical avg
   const { data: history } = await supabaseAdmin
     .from("evaluations").select("typing_speed")
-    .eq("username", input.username).order("created_at", { ascending: false }).limit(10);
+    .eq("session_id", sessionId).eq("username", input.username)
+    .order("created_at", { ascending: false }).limit(10);
   if (history && history.length > 0) {
     const avg = history.reduce((a, b) => a + b.typing_speed, 0) / history.length;
     const drift = Math.abs(avg - input.typing_speed);
@@ -112,16 +116,16 @@ export async function evaluateTrust(input: EvaluateInput) {
   const recommendation: "granted" | "step_up" | "blocked" =
     score >= 80 ? "granted" : score >= 50 ? "step_up" : "blocked";
 
-  // 7. Persist graph edges
   await Promise.all([
-    ensureEdge(userNode.id, ipNode.id, "uses_ip"),
-    ensureEdge(userNode.id, deviceNode.id, "uses_device"),
-    ensureEdge(userNode.id, locNode.id, "uses_location"),
+    ensureEdge(sessionId, userNode.id, ipNode.id, "uses_ip"),
+    ensureEdge(sessionId, userNode.id, deviceNode.id, "uses_device"),
+    ensureEdge(sessionId, userNode.id, locNode.id, "uses_location"),
   ]);
 
-  // 8. Blockchain hash — chain to previous block
   const { data: last } = await supabaseAdmin
-    .from("evaluations").select("hash").order("created_at", { ascending: false }).limit(1).maybeSingle();
+    .from("evaluations").select("hash")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: false }).limit(1).maybeSingle();
   const prev_hash = last?.hash ?? "0".repeat(64);
   const payload = JSON.stringify({
     username: input.username, ip: input.ip,
@@ -131,9 +135,9 @@ export async function evaluateTrust(input: EvaluateInput) {
   });
   const hash = sha256(payload);
 
-  // 9. Persist evaluation (audit trail)
   const { data: row, error } = await supabaseAdmin
     .from("evaluations").insert({
+      session_id: sessionId,
       username: input.username,
       ip: input.ip,
       device_fingerprint: input.device_fingerprint,
@@ -143,28 +147,22 @@ export async function evaluateTrust(input: EvaluateInput) {
     }).select("*").single();
   if (error) throw error;
 
-  return {
-    evaluation: row,
-    factors,
-    score,
-    risk,
-    recommendation,
-    hash,
-    prev_hash,
-  };
+  return { evaluation: row, factors, score, risk, recommendation, hash, prev_hash };
 }
 
-export async function fetchRecentEvaluations(limit = 20) {
+export async function fetchRecentEvaluations(sessionId: string, limit = 20) {
   const { data, error } = await supabaseAdmin
-    .from("evaluations").select("*").order("created_at", { ascending: false }).limit(limit);
+    .from("evaluations").select("*")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: false }).limit(limit);
   if (error) throw error;
   return data ?? [];
 }
 
-export async function fetchGraph() {
+export async function fetchGraph(sessionId: string) {
   const [{ data: nodes }, { data: edges }] = await Promise.all([
-    supabaseAdmin.from("nodes").select("*"),
-    supabaseAdmin.from("edges").select("*"),
+    supabaseAdmin.from("nodes").select("*").eq("session_id", sessionId),
+    supabaseAdmin.from("edges").select("*").eq("session_id", sessionId),
   ]);
   return { nodes: nodes ?? [], edges: edges ?? [] };
 }
