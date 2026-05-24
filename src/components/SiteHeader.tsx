@@ -3,11 +3,10 @@ import { Shield } from "lucide-react";
 
 const links = [
   { to: "/", label: "Home" },
-  { to: "/auth", label: "Authenticate" },
   { to: "/workflow", label: "Workflow" },
+  { to: "/features", label: "Features" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/analytics", label: "Analytics" },
-  { to: "/features", label: "Features" },
 ];
 
 export function SiteHeader() {
@@ -37,10 +36,10 @@ export function SiteHeader() {
           ))}
         </nav>
         <Link
-          to="/auth"
+          to="/dashboard"
           className="hidden sm:inline-flex items-center gap-2 rounded-full bg-cream text-background px-4 py-2 text-sm font-medium hover:bg-neon transition-colors"
         >
-          Evaluate Trust <span aria-hidden>↗</span>
+          Open Dashboard <span aria-hidden>↗</span>
         </Link>
       </div>
     </header>

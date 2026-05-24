@@ -71,11 +71,11 @@ function Hero() {
               Blockchain-backed explainable fraud intelligence. We score every login in 80 ms — behavior, graph, and chain working as one signal.
             </motion.p>
             <motion.div {...fadeUp} transition={{ delay: 0.2, duration: 0.7 }} className="mt-10 flex flex-wrap gap-3">
-              <Link to="/auth" className="inline-flex items-center gap-2 rounded-full bg-cream text-background px-6 py-3.5 text-sm font-medium hover:bg-neon transition-colors">
-                Simulate a login <ArrowUpRight className="size-4" />
+              <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-full bg-cream text-background px-6 py-3.5 text-sm font-medium hover:bg-neon transition-colors">
+                View live dashboard <ArrowUpRight className="size-4" />
               </Link>
-              <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3.5 text-sm font-medium hover:border-neon transition-colors">
-                View live dashboard
+              <Link to="/workflow" className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3.5 text-sm font-medium hover:border-neon transition-colors">
+                Explore architecture
               </Link>
             </motion.div>
           </div>
@@ -278,8 +278,8 @@ function CTA() {
             Ship trust like it's <span className="text-neon">money.</span>
           </h2>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link to="/auth" className="inline-flex items-center gap-2 rounded-full bg-cream text-background px-6 py-3.5 text-sm font-medium hover:bg-neon transition-colors">
-              Try the simulator <ArrowUpRight className="size-4" />
+            <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-full bg-cream text-background px-6 py-3.5 text-sm font-medium hover:bg-neon transition-colors">
+              View dashboard <ArrowUpRight className="size-4" />
             </Link>
             <Link to="/features" className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3.5 text-sm font-medium hover:border-neon transition-colors">
               Explore features
@@ -287,6 +287,84 @@ function CTA() {
           </div>
         </div>
       </motion.div>
+    </section>
+  );
+}
+
+function TechStack() {
+  const groups = [
+    {
+      title: "Frontend",
+      tag: "UI · UX",
+      items: [
+        { k: "React + TypeScript", d: "Typed component model for an enterprise fintech UI." },
+        { k: "TailwindCSS", d: "Design-token driven styling with dark fintech theme." },
+        { k: "Framer Motion", d: "Smooth, premium micro-interactions and transitions." },
+        { k: "Recharts", d: "Trust trends, fraud attempts, distributions." },
+        { k: "React Flow", d: "Graph fraud intelligence — nodes, edges, mule networks." },
+      ],
+    },
+    {
+      title: "AI / Risk Engine",
+      tag: "Intelligence",
+      items: [
+        { k: "Python · FastAPI", d: "Low-latency risk scoring API (<100ms)." },
+        { k: "scikit-learn / XGBoost", d: "Anomaly + ensemble model for the trust score." },
+        { k: "NetworkX / Neo4j", d: "Graph fraud intelligence across users, IPs, devices." },
+        { k: "SHAP", d: "Explainable AI — top human-readable reasons per decision." },
+      ],
+    },
+    {
+      title: "Blockchain & Backend",
+      tag: "Trust Layer",
+      items: [
+        { k: "Node.js + Express", d: "Auth orchestration & evaluation API." },
+        { k: "SHA-256 (crypto)", d: "Behavior hashing for tamper-proof audit records." },
+        { k: "Ethereum / Polygon (Solidity)", d: "Immutable audit trail anchored on-chain." },
+        { k: "PostgreSQL + Redis", d: "Session store, hot risk cache, evaluations." },
+      ],
+    },
+    {
+      title: "DevOps & Security",
+      tag: "Platform",
+      items: [
+        { k: "Docker · Kubernetes", d: "Containerized, horizontally scalable services." },
+        { k: "GitHub Actions", d: "CI/CD with automated test + lint gates." },
+        { k: "JWT + OAuth2", d: "Bank-grade session and access control." },
+        { k: "Cloudflare / AWS", d: "Edge protection, WAF, KMS for secrets." },
+      ],
+    },
+  ];
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-24">
+      <motion.div {...fadeUp} className="mb-12">
+        <div className="chip mb-4">06 · TECH STACK</div>
+        <h2 className="display text-5xl max-w-3xl">Built for a hackathon. Engineered for a bank.</h2>
+        <p className="text-muted-foreground mt-4 max-w-2xl">
+          The stack we'll use to ship the prototype — modern, open-source, and production-ready.
+        </p>
+      </motion.div>
+      <div className="grid md:grid-cols-2 gap-5">
+        {groups.map((g, gi) => (
+          <motion.div key={g.title} {...fadeUp} transition={{ delay: gi * 0.08 }} className="surface surface-hover p-7">
+            <div className="flex items-center justify-between mb-6">
+              <div className="text-xl font-medium">{g.title}</div>
+              <span className="chip">{g.tag}</span>
+            </div>
+            <ul className="space-y-4">
+              {g.items.map((it) => (
+                <li key={it.k} className="flex items-start gap-3">
+                  <span className="mt-2 size-1.5 rounded-full bg-neon shrink-0" />
+                  <div>
+                    <div className="text-sm font-medium">{it.k}</div>
+                    <div className="text-sm text-muted-foreground mt-0.5">{it.d}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -302,6 +380,7 @@ function Landing() {
       <Features />
       <DashboardPreview />
       <Impact />
+      <TechStack />
       <CTA />
       <SiteFooter />
     </main>
