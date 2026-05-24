@@ -14,7 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      edges: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          source_id: string
+          target_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          source_id: string
+          target_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          source_id?: string
+          target_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edges_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edges_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluations: {
+        Row: {
+          block_index: number
+          created_at: string
+          device_fingerprint: string
+          factors: Json
+          hash: string
+          id: string
+          ip: string
+          location: string
+          prev_hash: string
+          recommendation: string
+          risk: number
+          score: number
+          typing_speed: number
+          username: string
+        }
+        Insert: {
+          block_index?: number
+          created_at?: string
+          device_fingerprint: string
+          factors?: Json
+          hash: string
+          id?: string
+          ip: string
+          location: string
+          prev_hash: string
+          recommendation: string
+          risk: number
+          score: number
+          typing_speed: number
+          username: string
+        }
+        Update: {
+          block_index?: number
+          created_at?: string
+          device_fingerprint?: string
+          factors?: Json
+          hash?: string
+          id?: string
+          ip?: string
+          location?: string
+          prev_hash?: string
+          recommendation?: string
+          risk?: number
+          score?: number
+          typing_speed?: number
+          username?: string
+        }
+        Relationships: []
+      }
+      nodes: {
+        Row: {
+          created_at: string
+          flagged: boolean
+          id: string
+          type: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          flagged?: boolean
+          id?: string
+          type: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          flagged?: boolean
+          id?: string
+          type?: string
+          value?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
