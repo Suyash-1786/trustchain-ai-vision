@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           id: string
           kind: string
+          session_id: string
           source_id: string
           target_id: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind: string
+          session_id?: string
           source_id: string
           target_id: string
         }
@@ -33,6 +35,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          session_id?: string
           source_id?: string
           target_id?: string
         }
@@ -67,6 +70,7 @@ export type Database = {
           recommendation: string
           risk: number
           score: number
+          session_id: string
           typing_speed: number
           username: string
         }
@@ -83,6 +87,7 @@ export type Database = {
           recommendation: string
           risk: number
           score: number
+          session_id?: string
           typing_speed: number
           username: string
         }
@@ -99,6 +104,7 @@ export type Database = {
           recommendation?: string
           risk?: number
           score?: number
+          session_id?: string
           typing_speed?: number
           username?: string
         }
@@ -109,6 +115,7 @@ export type Database = {
           created_at: string
           flagged: boolean
           id: string
+          session_id: string
           type: string
           value: string
         }
@@ -116,6 +123,7 @@ export type Database = {
           created_at?: string
           flagged?: boolean
           id?: string
+          session_id?: string
           type: string
           value: string
         }
@@ -123,6 +131,7 @@ export type Database = {
           created_at?: string
           flagged?: boolean
           id?: string
+          session_id?: string
           type?: string
           value?: string
         }

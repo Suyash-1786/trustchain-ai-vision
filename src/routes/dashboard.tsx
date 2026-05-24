@@ -65,8 +65,8 @@ function Dashboard() {
 
   // Fall back to most recent stored evaluation if no fresh session result
   const current = last ?? (evals.data && evals.data[0] ? {
-    evaluation: evals.data[0] as LastEval["evaluation"],
-    factors: (evals.data[0].factors as LastEval["factors"]) ?? [],
+    evaluation: evals.data[0] as unknown as LastEval["evaluation"],
+    factors: (evals.data[0].factors as unknown as LastEval["factors"]) ?? [],
     score: evals.data[0].score, risk: evals.data[0].risk,
     recommendation: evals.data[0].recommendation as LastEval["recommendation"],
     hash: evals.data[0].hash, prev_hash: evals.data[0].prev_hash,
