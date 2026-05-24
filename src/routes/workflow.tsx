@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
   Fingerprint, Lock, Cpu, Network, Activity, ShieldCheck, ShieldAlert, ShieldOff,
+  Code2, Brain, Database, Cloud,
 } from "lucide-react";
 
 export const Route = createFileRoute("/workflow")({
@@ -136,8 +137,110 @@ function Workflow() {
               {i < layers.length - 1 && <Connector delay={i * 0.08 + 0.2} />}
             </div>
           ))}
+
+          <TechStack />
         </div>
       </section>
     </main>
+  );
+}
+
+const stackGroups = [
+  {
+    icon: Code2,
+    title: "Frontend",
+    tag: "UI · UX",
+    items: [
+      { k: "React + TypeScript", d: "Typed component model for an enterprise fintech UI." },
+      { k: "TailwindCSS", d: "Design-token driven styling with dark fintech theme." },
+      { k: "Framer Motion", d: "Smooth, premium micro-interactions." },
+      { k: "Recharts", d: "Trust trends, fraud attempts, distributions." },
+      { k: "React Flow", d: "Graph fraud intelligence — nodes, edges, mule networks." },
+    ],
+  },
+  {
+    icon: Brain,
+    title: "AI / Risk Engine",
+    tag: "Intelligence",
+    items: [
+      { k: "Python · FastAPI", d: "Low-latency risk scoring API (<100ms)." },
+      { k: "scikit-learn / XGBoost", d: "Anomaly + ensemble model for the trust score." },
+      { k: "NetworkX / Neo4j", d: "Graph fraud intelligence across users, IPs, devices." },
+      { k: "SHAP", d: "Explainable AI — human-readable reasons per decision." },
+    ],
+  },
+  {
+    icon: Database,
+    title: "Blockchain & Backend",
+    tag: "Trust Layer",
+    items: [
+      { k: "Node.js + Express", d: "Auth orchestration & evaluation API." },
+      { k: "SHA-256 (crypto)", d: "Behavior hashing for tamper-proof audit records." },
+      { k: "Ethereum / Polygon (Solidity)", d: "Immutable audit trail anchored on-chain." },
+      { k: "PostgreSQL + Redis", d: "Session store, hot risk cache, evaluations." },
+    ],
+  },
+  {
+    icon: Cloud,
+    title: "DevOps & Security",
+    tag: "Platform",
+    items: [
+      { k: "Docker · Kubernetes", d: "Containerized, horizontally scalable services." },
+      { k: "GitHub Actions", d: "CI/CD with automated test + lint gates." },
+      { k: "JWT + OAuth2", d: "Bank-grade session and access control." },
+      { k: "Cloudflare / AWS", d: "Edge protection, WAF, KMS for secrets." },
+    ],
+  },
+];
+
+function TechStack() {
+  return (
+    <div className="mt-32">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="text-center mb-12"
+      >
+        <div className="chip mb-5 mx-auto">MVP TECH STACK</div>
+        <h2 className="display text-5xl">Stack we'll ship the <span className="text-neon">prototype</span> on.</h2>
+        <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
+          Modern, open-source, production-grade — chosen to be hackathon-fast and bank-credible.
+        </p>
+      </motion.div>
+      <div className="grid md:grid-cols-2 gap-5">
+        {stackGroups.map((g, gi) => (
+          <motion.div
+            key={g.title}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.55, delay: gi * 0.08, ease: [0.22, 1, 0.36, 1] }}
+            className="surface surface-hover p-7"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-secondary grid place-items-center text-neon">
+                  <g.icon className="size-5" />
+                </div>
+                <div className="text-xl font-medium">{g.title}</div>
+              </div>
+              <span className="chip">{g.tag}</span>
+            </div>
+            <ul className="space-y-4">
+              {g.items.map((it) => (
+                <li key={it.k} className="flex items-start gap-3">
+                  <span className="mt-2 size-1.5 rounded-full bg-neon shrink-0" />
+                  <div>
+                    <div className="text-sm font-medium">{it.k}</div>
+                    <div className="text-sm text-muted-foreground mt-0.5">{it.d}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
+    </div>
   );
 }
